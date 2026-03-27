@@ -1,67 +1,27 @@
-const express = require('express');
-const http = require('http');
-const socketIO = require('socket.io');
-const cors = require('cors');
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import dotenv from 'dotenv';
+import app from './app.js'; // Import the configured Express app
+import { initializeWebSockets } from './sockets/socketHandler.js';
 
-const app = express();
-app.use(cors());
+dotenv.config();
 
-const server = http.createServer(app);
+// Create a raw HTTP server using the Express app as the engine
+const serverHttp = createServer(app);
 
-// Initialize socket.io with CORS configuration
-const io = socketIO(server, {
-    cors: {
-        origin: "*", // allow any origin for development
-        methods: ["GET", "POST"]
-    }
-});
-const port = process.env.PORT || 3000;
-
-// In-memory state for posters. { "poster_id_1": [ { type: 'path', data: ... } ] }
-const postersState = {};
-
-app.get("/", (req, res) => {
-    res.send("iTEC 2026 Override Backend is running.");
+// Initialize the WebSockets brain by attaching it to the HTTP server
+const serverWebSockets = new Server(serverHttp, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
 });
 
-io.on('connection', (socket) => {
-    console.log(`New user connected: ${socket.id}`);
+// Delegate the heavy Socket logic to its dedicated file
+initializeWebSockets(serverWebSockets);
 
-    // User scans a poster and joins its room
-    socket.on('joinPoster', (posterId) => {
-        socket.join(posterId);
-        console.log(`User ${socket.id} joined poster: ${posterId}`);
-        
-        if (!postersState[posterId]) {
-            postersState[posterId] = [];
-        }
-        
-        // Send the current history to the newly connected user
-        socket.emit('posterState', postersState[posterId]);
-    });
-
-    // User draws something on a poster
-    socket.on('addGraffiti', ({ posterId, element }) => {
-        if (!postersState[posterId]) {
-            postersState[posterId] = [];
-        }
-        
-        postersState[posterId].push(element);
-        
-        // Broadcast to everyone ELSE viewing the same poster
-        socket.to(posterId).emit('newGraffiti', element);
-    });
-
-    socket.on('clearPoster', ({ posterId }) => {
-        postersState[posterId] = [];
-        io.to(posterId).emit('posterCleared');
-    });
-
-    socket.on('disconnect', () => {
-        console.log(`User disconnected: ${socket.id}`);
-    });
-});
-
-server.listen(port, () => {
-    console.log(`Server is up on port ${port}`);
+// Start listening on port 3000
+const PORT = process.env.PORT || 3000;
+serverHttp.listen(PORT, () => {
+  console.log(`✅ [HTTP & WebSockets] Server listening on port ${PORT}...`);
 });
