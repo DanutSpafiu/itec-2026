@@ -62,6 +62,12 @@ export default function LoginScreen() {
       if (response.ok && data.user) {
         console.log("User logged in:", data.user);
         setFeedback({ message: `Authentication successful! Welcome, ${data.user.name}.`, type: 'success' });
+        
+        // Timer scurt ca să vadă mesajul verde, apoi o trimitem direct la Scanner!
+        setTimeout(() => {
+          router.replace('/(tabs)');
+        }, 1200);
+
       } else {
         setFeedback({ message: data.error || "Invalid email or password.", type: 'error' });
       }
