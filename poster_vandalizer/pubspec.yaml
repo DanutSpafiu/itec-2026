@@ -1,0 +1,32 @@
+name: poster_vandalizer
+description: "AR Poster Vandalism App - Draw over detected posters in real-time"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  camera: ^0.11.0+2
+  tflite_flutter: ^0.11.0
+  socket_io_client: ^3.0.2
+  provider: ^6.1.2
+  http: ^1.2.2
+  path_provider: ^2.1.4
+  permission_handler: ^11.3.1
+  uuid: ^4.5.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/posters/
+    - assets/poster_classifier.tflite
+    - assets/labels.txt
