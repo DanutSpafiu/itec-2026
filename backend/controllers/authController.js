@@ -1,6 +1,9 @@
 import { prisma } from '../config/prisma.js';
 import bcrypt from 'bcrypt';
 
+// Regex simplu pentru formatul standard (text@text.ext)
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 // ---- REGISTER NEW USER ----
 export const registerUser = async (req, res) => {
   try {
@@ -8,6 +11,10 @@ export const registerUser = async (req, res) => {
 
     if(!email || !password || !name){
       return res.status(400).json({ error: "All fields are required!" });
+    }
+
+    if(!emailRegex.test(email)){
+      return res.status(400).json({ error: "Please enter a valid email address!" });
     }
 
     if(password.length < 6){
@@ -57,6 +64,10 @@ export const loginUser = async (req, res) => {
 
     if(!email || !password){
       return res.status(400).json({ error: "All fields are required!" });
+    } 
+
+    if(!emailRegex.test(email)){
+      return res.status(400).json({ error: "Please enter a valid email address!" });
     } 
 
     const user = await prisma.user.findUnique({ where: { email: email } });
